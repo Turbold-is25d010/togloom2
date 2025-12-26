@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8">
+  <title>Countdown Timer</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 100px;
+    }
+    #timer {
+      font-size: 50px;
+      margin-bottom: 20px;
+    }
+    button {
+      font-size: 20px;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Тоо харагдах хэсэг -->
+  <div id="timer">10</div>
+
+  <!-- Эхлэх товч -->
+  <button id="startBtn">Эхлэх</button>
+
+<script>
+  // HTML элементүүдийг авч байна
+  const timerDiv = document.getElementById("timer");
+  const startBtn = document.getElementById("startBtn");
+
+  // Countdown хийх function
+  function startCountdown() {
+    // 10-аас 0 хүртэл бууруулах
+    for (let i = 10; i >= 0; i--) {
+      // setTimeout ашиглан секунд тутамд өөрчилнө
+      setTimeout(() => {
+        timerDiv.textContent = i;
+      }, (10 - i) * 1000);
+    }
+  }
+
+  // Эхлэх товч дээр event нэмэх
+  startBtn.addEventListener("click", startCountdown);
+</script>
+
+</body>
+</html>
