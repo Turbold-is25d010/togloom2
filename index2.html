@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<!-- HTML5 баримт бичиг гэдгийг заана -->
+<html lang="mn">
+<!-- Хуудасны хэл Монгол -->
+
+<head>
+<meta charset="UTF-8">
+<!-- UTF-8 тэмдэгт кодчилол (Монгол үсэг дэмжинэ) -->
+
+<title>Runner Bot</title>
+<!-- таб дээр харагдах гарчиг -->
+
+<style>
+  /* Бүх хуудасны загвар */
+  body {
+    margin:0; /* Хуудасны захын зайг арилгана */
+    background:#f4f4f4; /* Саарал дэвсгэр */
+    display:flex; /* Flexbox ашиглана */
+    justify-content:center; /* Хэвтээ төвд байрлуулна */
+    align-items:center; /* Босоо төвд байрлуулна */
+    height:100vh; /* Дэлгэцийн бүтэн өндөр */
+  }
+
+  /* Canvas-ийн загвар */
+  canvas {
+    background:white; /* Цагаан дэвсгэр */
+    border:3px solid #333; /* Хүрээ */
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Тоглоом зурах canvas -->
+<canvas id="game" width="800" height="300"></canvas>
+
+<script>
+/* Canvas элемент авч байна */
+const canvas = document.getElementById("game");
+
+/* 2D зурах контекст */
+const ctx = canvas.getContext("2d");
+
+/* Тоглогчын мэдээлэл */
+let player = {
+  x:50,     // X байрлал
+  y:220,    // Y байрлал
+  w:30,     // өргөн
+  h:30,     // өндөр
+  vy:0,     // босоо хурд
+  jump:false // үсэрч байгаа эсэх
+};
+
+let gravity = 0.7;   // Таталцлын хүч
+let obstacles = []; // Саадуудын массив
+let speed = 5;      // Саадны хурд
+let score = 0;      // Оноо
+let gameOver = false; // Тоглоом дууссан эсэх
+
+/* Гар дээр даралт илрүүлэх */
+document.addEventListener("keydown", e => {
+
+  // Space эсвэл B дарвал үсэрнэ
+  if ((e.code === "Space" || e.key.toLowerCase()==="b") && !player.jump) {
+    player.vy = -12;   // Дээш үсрэх хурд
+    player.jump = true;
+  }
+
+  // R дарвал тоглоом дахин эхлэнэ
+  if (e.key.toLowerCase()==="r" && gameOver) restart();
+});
+
+/* Саад үүсгэх функц */
+function spawnObstacle() {
+  obstacles.push({
+    x: canvas.width, // Баруун талаас гарч ирнэ
+    y:230,           // Газарт байрлана
+    w:20,            // Өргөн
+    h:20             // Өндөр
+  });
+}
+
+/* 1.5 секунд тутам саад гаргана */
+setInterval(spawnObstacle, 1500);
+
+/* Тоглоомын логик шинэчлэх */
+function update() {
+  if (gameOver) return; // Game over бол зогсоно
+
+  /* Тоглогчийн физик */
+  player.vy += gravity; // Таталцал нэмнэ
+  player.y += player.vy; // Байрлал өөрчилнө
+
+  // Газарт буусан эсэх
+  if (player.y + player.h >= 250) {
+    player.y = 250 - player.h;
+    player.vy = 0;
+    player.jump = false;
+  }
+
+  /* Саад хөдөлгөх */
+  obstacles.forEach(o => o.x -= speed);
+
+  // Дэлгэцнээс гарсан саадыг устгана
+  obstacles = obstacles.filter(o => o.x + o.w > 0);
+
+  /* Мөргөлдөөн шалгах */
+  obstacles.forEach(o => {
+    if (
+      player.x < o.x + o.w &&
+      player.x + player.w > o.x &&
+      player.y < o.y + o.h &&
+      player.y + player.h > o.y
+    ) {
+      gameOver = true; // Мөргөлдвөл тоглоом дуусна
+    }
+  });
+
+  score++; // Оноо нэмэгдэнэ
+}
+
+/* Дэлгэц дээр зурах */
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  /* Газар */
+  ctx.fillStyle = "#ddd";
+  ctx.fillRect(0,250,canvas.width,5);
+
+  /* Тоглогч (робот) */
+  ctx.fillStyle = "#0077ff";
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+
+  // Нүд
+  ctx.fillStyle = "white";
+  ctx.fillRect(player.x+6, player.y+6, 6, 6);
+  ctx.fillRect(player.x+18, player.y+6, 6, 6);
+
+  /* Саадууд */
+  ctx.fillStyle = "#ff4444";
+  obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
+
+  /* Оноо */
+  ctx.fillStyle = "#000";
+  ctx.fillText("Score: " + score, 10, 20);
+
+  /* Game Over текст */
+  if (gameOver) {
+    ctx.fillStyle = "black";
+    ctx.font = "30px Arial";
+    ctx.fillText("GAME OVER", 300, 150);
+    ctx.font = "16px Arial";
+    ctx.fillText("Press R to Restart", 320, 180);
+  }
+}
+
+/* Тоглоомын үндсэн давталт */
+function loop() {
+  update(); // Логик
+  draw();   // Зурах
+  requestAnimationFrame(loop); // 60fps давталт
+}
+
+/* Тоглоом дахин эхлүүлэх */
+function restart() {
+  obstacles = [];
+  score = 0;
+  player.y = 220;
+  player.vy = 0;
+  gameOver = false;
+}
+
+/* Тоглоом эхлүүлэх */
+loop();
+</script>
+</body>
+</html>
